@@ -54,8 +54,13 @@ summary(model)
 
 
 # Step1 画像をprocessorに入力し，パッチ分割 and 埋め込み した状態に変換する
-inputs, info = processor(images=images, return_tensors="pt")
+inputs, info = processor(images=images, return_tensors="pt")      # inputsには実際にmodelに入力するデータが返却される．infoには途中のデータが返却される
 inputs = {key: value.to(device) for key, value in inputs.items()} # 入力をdeviceに送る
+
+# infoよりnormalizeした画像データを取得し，可視化する
+plt.imshow(info['normalize_images'][0]) # batch=0の画像を可視化
+plt.savefig('normalize_image.png')
+plt.close()
 
 print("len(inputs['flattened_patches']) : ", len(inputs['flattened_patches']))  # 2 >> batch_size
 # processorの出力の形状を確認 (1バッチごとに，タプル型で提供されているため，0番目のデータの形状を確認する)
