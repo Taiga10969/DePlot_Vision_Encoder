@@ -84,6 +84,16 @@ plt.imshow(attention_list[0][0])
 plt.savefig('./output_images/attention_list_layer0_head0.png')
 plt.close()
 
+# layer=0, head=0 を可視化 (有効なパッチ部分のみを取り出して可視化)
+path_nums = info['extract_flattened_patches_info'][batch]
+active_path_num = path_nums['rows']*path_nums['columns']
+print("active_path_num : ", active_path_num)
+attn = attention_list[0][0]
+print('np.shape(attn[:active_path_num, :active_path_num]) : ', np.shape(attn[:active_path_num, :active_path_num]))
+plt.imshow(attn[:active_path_num, :active_path_num])
+plt.savefig('./output_images/attention_list_layer0_head0_active_path.png')
+plt.close()
+
 
 vision_attn = Attention_Rollout(attention_list)
 
