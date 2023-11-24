@@ -22,11 +22,12 @@ vision_config = Pix2StructVisionConfig.from_pretrained('google/deplot')
 model = Pix2StructVisionModel(vision_config).to(device)
 processor = Pix2StructImageProcessor()
 
-
+# 学習済みパラメータの読み込み
 msg = model.load_state_dict(torch.load('model.pth', map_location=torch.device(device)))
 print("model.load_state_dict message : ", msg)
 print("model.device : ", model.device)
 
+# データの準備
 root_dir = '/taiga/Datasets/moonshot-dataset'
 dataset = Related_Text_Dataset(root_dir=root_dir, 
                                image_processor=None, 
@@ -35,22 +36,30 @@ dataset = Related_Text_Dataset(root_dir=root_dir,
                                split_caption=True, 
                                )
 
-i=7
-image_path, _, _, _ = dataset[i]
+# batch_size = 2 の画像データを作成
+image_indexs = [7, 11]
+image_paths = []
+for i in image_indexs:
+    image_path, _, _, _ = dataset[i]
+    image_paths.append(image_path)
+
+images=[]
+for image_path in image_paths:
+    image = Image.open(os.path.join(root_dir, image_path)).convert('RGB')
+    images.append(image)
 
 
-image = Image.open(os.path.join(root_dir, image_path)).convert('RGB')
-print(np.shape(image))
-
+# modelの構造を表示
 summary(model)
 
 
 # Step1 画像をprocessorに入力し，パッチ分割 and 埋め込み した状態に変換する
-inputs, info = processor(images=image, return_tensors="pt")
+inputs, info = processor(images=images, return_tensors="pt")
 inputs = {key: value.to(device) for key, value in inputs.items()} # 入力をdeviceに送る
 
+print("len(inputs['flattened_patches']) : ", len(inputs['flattened_patches']))  # 2 >> batch_size
 # processorの出力の形状を確認 (1バッチごとに，タプル型で提供されているため，0番目のデータの形状を確認する)
-print("inputs['flattened_patches'][0].shape : ", inputs['flattened_patches'][0].shape)  #torch.Size([2048, 770]) >> [max_patches, dim]
+print("inputs['flattened_patches'][0].shape : ", inputs['flattened_patches'][0].shape)  # torch.Size([2048, 770]) >> [max_patches, dim]
 
 outputs = model(flattened_patches = inputs['flattened_patches'], 
                 attention_mask = inputs['attention_mask'],
@@ -60,4 +69,4 @@ outputs = model(flattened_patches = inputs['flattened_patches'],
                 )
 
 # 出力の特徴量を確認
-print("hidden_states.shape : ", outputs[0].shape) # torch.Size([1, 2048, 768]) >> [batch, max_patches, dim]
+print("hidden_states.shape : ", outputs[0].shape) # torch.Size([2, 2048, 768]) >> [batch, max_patches, dim]
