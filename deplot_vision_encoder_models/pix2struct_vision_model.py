@@ -362,7 +362,8 @@ class Pix2StructVisionEncoder(nn.Module):
             hidden_states = layer_outputs[0]
 
             if output_attentions:
-                all_self_attentions = all_self_attentions + (layer_outputs[1],)
+                #all_self_attentions = all_self_attentions + (layer_outputs[1],) # position_biasを出力するようになっていた．
+                all_self_attentions = all_self_attentions + (layer_outputs[2],)　# Attention Weightを出力するように変更
 
         if output_hidden_states:
             all_hidden_states = all_hidden_states + (hidden_states,)
